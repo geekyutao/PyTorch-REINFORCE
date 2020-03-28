@@ -55,7 +55,7 @@ def main():
     # Parameters
     num_episode = 5000
     batch_size = 5
-    learning_rate = 0.005
+    learning_rate = 0.01
     gamma = 0.99
 
     env = gym.make('CartPole-v0')

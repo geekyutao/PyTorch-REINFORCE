@@ -64,8 +64,6 @@ def main():
     optimizer = torch.optim.Adam(policy_net.parameters(), lr=learning_rate)
 
     # Batch History
-    state_pool = []
-    action_pool = []
     reward_pool = []
     logprob_pool = []
     steps = 0
@@ -96,14 +94,10 @@ def main():
             if done:
                 reward = 0
 
-            state_pool.append(state)
-            action_pool.append(float(action))
             reward_pool.append(reward)
-
 
             state = next_state
             state = torch.from_numpy(state).float()
-            state = Variable(state)
 
             steps += 1
 
@@ -134,22 +128,14 @@ def main():
             optimizer.zero_grad()
 
             for i in range(steps):
-                state = state_pool[i]
-                action = Variable(torch.FloatTensor([action_pool[i]]))
                 reward = reward_pool[i]
-
-                # probs = policy_net(state)
-                # m = Categorical(probs)
                 loss = -logprob_pool[i] * reward  # Negtive score function x reward
-                # loss = -m.log_prob(action) * reward  # Negtive score function x reward
                 loss.backward()
 
             optimizer.step()
 
-            state_pool = []
-            action_pool = []
-            reward_pool = []
             logprob_pool = []
+            reward_pool = []
             steps = 0
 
 

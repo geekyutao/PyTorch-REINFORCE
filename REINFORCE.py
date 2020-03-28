@@ -67,6 +67,7 @@ def main():
     state_pool = []
     action_pool = []
     reward_pool = []
+    logprob_pool = []
     steps = 0
 
 
@@ -77,12 +78,14 @@ def main():
         state = Variable(state)
         # env.render(mode='rgb_array')
 
+        # Interaction
         for t in count():
 
             probs = policy_net(state)
             # m = Bernoulli(probs)
             m = Categorical(probs)
             action = m.sample()
+            logprob_pool.append(m.log_prob(action))
             # print(action)
 
             action = action.data.numpy().astype(int)
@@ -96,6 +99,7 @@ def main():
             state_pool.append(state)
             action_pool.append(float(action))
             reward_pool.append(reward)
+
 
             state = next_state
             state = torch.from_numpy(state).float()
@@ -134,10 +138,10 @@ def main():
                 action = Variable(torch.FloatTensor([action_pool[i]]))
                 reward = reward_pool[i]
 
-                probs = policy_net(state)
-                # m = Bernoulli(probs)
-                m = Categorical(probs)
-                loss = -m.log_prob(action) * reward  # Negtive score function x reward
+                # probs = policy_net(state)
+                # m = Categorical(probs)
+                loss = -logprob_pool[i] * reward  # Negtive score function x reward
+                # loss = -m.log_prob(action) * reward  # Negtive score function x reward
                 loss.backward()
 
             optimizer.step()
@@ -145,6 +149,7 @@ def main():
             state_pool = []
             action_pool = []
             reward_pool = []
+            logprob_pool = []
             steps = 0
 
 

@@ -80,11 +80,10 @@ def main():
         for t in count():
 
             probs = policy_net(state)
-            # m = Bernoulli(probs)
+            # print(probs.size())
             m = Categorical(probs)
             action = m.sample()
             logprob_pool.append(m.log_prob(action))
-            # print(action)
 
             action = action.data.numpy().astype(int)
             next_state, reward, done, _ = env.step(action)
@@ -107,8 +106,8 @@ def main():
                 break
 
         # Update policy
-        if e > 0 and e % batch_size == 0:
 
+        if e > 0 and e % batch_size == 0:
             # Discount reward
             running_add = 0
             for i in reversed(range(steps)):
@@ -127,10 +126,14 @@ def main():
             # Gradient Desent
             optimizer.zero_grad()
 
+            mean_loss = 0
             for i in range(steps):
                 reward = reward_pool[i]
                 loss = -logprob_pool[i] * reward  # Negtive score function x reward
-                loss.backward()
+                mean_loss = mean_loss + loss
+
+            mean_loss = mean_loss / steps
+            mean_loss.backward()
 
             optimizer.step()
 
